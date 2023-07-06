@@ -65,6 +65,10 @@ Certifique-se de que o servidor esteja em execução e acesse os endpoints confo
 Isso é apenas um exemplo de README e você pode adaptá-lo para incluir informações adicionais, como pré-requisitos de ambiente, configuração do banco de dados, autenticação, entre outros.
 
 
+Endpoint: GET /veiculos/nao-vendidos/quantidade
+
+Ao acessar a URL /veiculos/nao-vendidos/quantidade no navegador ou no Postman, você receberá a quantidade de veículos que não estão vendidos como resposta.
+
 Obs:
 
 Necessário criar o banco tinnova e a tabela a seguir:
