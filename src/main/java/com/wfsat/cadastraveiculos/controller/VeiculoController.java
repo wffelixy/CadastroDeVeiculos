@@ -1,11 +1,10 @@
 package com.wfsat.cadastraveiculos.controller;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hibernate.type.descriptor.java.LocalDateJavaType;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,8 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wfsat.cadastraveiculos.model.Veiculo;
 import com.wfsat.cadastraveiculos.repository.VeiculoRepository;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/veiculos")
@@ -99,7 +96,7 @@ public class VeiculoController {
 	        return ResponseEntity.notFound().build();
 	    }
 
-	    // Atualizar apenas os campos fornecidos no corpo da requisição
+	    // Atualiza apenas os campos fornecidos no corpo da requisição
 	    camposAtualizados.forEach((campo, valor) -> {
 	        switch (campo) {
 	            case "marca":
@@ -148,6 +145,11 @@ public class VeiculoController {
 	    } else {
 	        return veiculos;
 	    }
+	}
+	
+	@GetMapping("/nao-vendidos/quantidade")
+	public int contarNaoVendidos() {
+	    return veiculoRepository.countByVendidoFalse();
 	}
 	
 

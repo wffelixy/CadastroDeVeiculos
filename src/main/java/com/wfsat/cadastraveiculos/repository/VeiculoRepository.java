@@ -8,4 +8,6 @@ import com.wfsat.cadastraveiculos.model.Veiculo;
 @Repository
 public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
 
+	int countByVendidoFalse();
+
 }
