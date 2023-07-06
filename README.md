@@ -64,4 +64,20 @@ Certifique-se de que o servidor esteja em execução e acesse os endpoints confo
 
 Isso é apenas um exemplo de README e você pode adaptá-lo para incluir informações adicionais, como pré-requisitos de ambiente, configuração do banco de dados, autenticação, entre outros.
 
-Certifique-se de atualizar o README com informações relevantes para o seu projeto específico.# CadastroDeVeiculos
+
+Obs:
+
+Necessário criar o banco tinnova e a tabela a seguir:
+
+create table veiculo(
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  veiculo VARCHAR(255) NOT NULL,
+  marca VARCHAR(255) NOT NULL,
+  ano INT NOT NULL,
+  descricao VARCHAR(4000),
+  vendido BOOLEAN NOT NULL,
+  created DATETIME NOT NULL,
+  updated DATETIME NOT NULL,
+  
+  PRIMARY KEY(id)  
+);
