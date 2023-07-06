@@ -2,6 +2,7 @@ package com.wfsat.cadastraveiculos.controller;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hibernate.type.descriptor.java.LocalDateJavaType;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -87,6 +89,44 @@ public class VeiculoController {
 
 		return ResponseEntity.noContent().build();
 	}
+	
+	@PatchMapping("/{veiculoId}")
+	public ResponseEntity<Veiculo> atualizarParcial(@PathVariable Long veiculoId,
+	        @RequestBody Map<String, Object> camposAtualizados) {
+
+	    Veiculo veiculoExistente = veiculoRepository.findById(veiculoId).orElse(null);
+	    if (veiculoExistente == null) {
+	        return ResponseEntity.notFound().build();
+	    }
+
+	    // Atualizar apenas os campos fornecidos no corpo da requisição
+	    camposAtualizados.forEach((campo, valor) -> {
+	        switch (campo) {
+	            case "marca":
+	                veiculoExistente.setMarca((String) valor);
+	                break;
+	            case "ano":
+	                veiculoExistente.setAno((Integer) valor);
+	                break;
+	            case "descricao":
+	                veiculoExistente.setDescricao((String) valor);
+	                break;
+	            case "vendido":
+	                veiculoExistente.setVendido((Boolean) valor);
+	                break;
+	            default:
+	                // Ignorar campos desconhecidos
+	                break;
+	        }
+	    });
+
+	    veiculoExistente.setUpdated(LocalDateTime.now());
+
+	    Veiculo veiculoAtualizado = veiculoRepository.save(veiculoExistente);
+
+	    return ResponseEntity.ok(veiculoAtualizado);
+	}
+
 	
 	@GetMapping("/filtro")
 	public List<Veiculo> filtrarVeiculosPorMarcaEAno(@RequestParam(required = false) String marca,
