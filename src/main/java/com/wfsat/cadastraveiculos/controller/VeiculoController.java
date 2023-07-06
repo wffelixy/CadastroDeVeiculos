@@ -1,6 +1,8 @@
 package com.wfsat.cadastraveiculos.controller;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +37,7 @@ public class VeiculoController {
 	public List<Veiculo> listar() {
 		return veiculoRepository.findAll();
 	}
-	
+
 	@GetMapping("/{veiculoId}")
 	public ResponseEntity<Veiculo> buscar(@PathVariable Long veiculoId) {
 
@@ -45,36 +47,48 @@ public class VeiculoController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Veiculo cadastrar(@RequestBody Veiculo veiculo) {
+	public ResponseEntity<Veiculo> cadastrar(@RequestBody Veiculo veiculo) {
 		veiculo.setCreated(LocalDateTime.now());
 		veiculo.setUpdated(LocalDateTime.now());
+
+		try {
+			validaMarca(veiculo);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}		
 		
-		return veiculoRepository.save(veiculo);
+		Veiculo novoVeiculo = veiculoRepository.save(veiculo);
+
+		return ResponseEntity.ok(novoVeiculo);
 	}
 
 	@PutMapping("/{veiculoId}")
-	public ResponseEntity<Veiculo> atualizar(@PathVariable Long veiculoId,
-	        @RequestBody Veiculo veiculo) {
+	public ResponseEntity<Veiculo> atualizar(@PathVariable Long veiculoId, @RequestBody Veiculo veiculo) {
 
-	    if (!veiculoRepository.existsById(veiculoId)) {
-	        return ResponseEntity.notFound().build();
-	    }
+		if (!veiculoRepository.existsById(veiculoId)) {
+			return ResponseEntity.notFound().build();
+		}
+		
+		try {
+			validaMarca(veiculo);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}	
 
-	    Veiculo veiculoExistente = veiculoRepository.findById(veiculoId).orElse(null);
+		Veiculo veiculoExistente = veiculoRepository.findById(veiculoId).orElse(null);
 
-	    veiculo.setCreated(veiculoExistente.getCreated());
-	    veiculo.setUpdated(LocalDateTime.now());
-	    
-	    // Copiar os atributos do veiculoAtualizado para o veiculoExistente, ignorando o 'created'
-	    BeanUtils.copyProperties(veiculo, veiculoExistente, "id", "created");
-	    
-	    
+		veiculo.setCreated(veiculoExistente.getCreated());
+		veiculo.setUpdated(LocalDateTime.now());
 
-	    Veiculo veiculoAtualizado = veiculoRepository.save(veiculoExistente);
+		// Copiar os atributos do veiculoAtualizado para o veiculoExistente
+		BeanUtils.copyProperties(veiculo, veiculoExistente, "id", "created");
 
-	    return ResponseEntity.ok(veiculoAtualizado);
+		validaMarca(veiculoExistente);
+
+		Veiculo veiculoAtualizado = veiculoRepository.save(veiculoExistente);
+
+		return ResponseEntity.ok(veiculoAtualizado);
 	}
-
 
 	@DeleteMapping("/{veiculoId}")
 	public ResponseEntity<Void> remover(@PathVariable Long veiculoId) {
@@ -86,71 +100,118 @@ public class VeiculoController {
 
 		return ResponseEntity.noContent().build();
 	}
-	
+
 	@PatchMapping("/{veiculoId}")
 	public ResponseEntity<Veiculo> atualizarParcial(@PathVariable Long veiculoId,
-	        @RequestBody Map<String, Object> camposAtualizados) {
+			@RequestBody Map<String, Object> camposAtualizados) {
 
-	    Veiculo veiculoExistente = veiculoRepository.findById(veiculoId).orElse(null);
-	    if (veiculoExistente == null) {
-	        return ResponseEntity.notFound().build();
-	    }
+		Veiculo veiculoExistente = veiculoRepository.findById(veiculoId).orElse(null);
+		if (veiculoExistente == null) {
+			return ResponseEntity.notFound().build();
+		}
+		
+		// Atualiza apenas os campos fornecidos no corpo da requisição
+		camposAtualizados.forEach((campo, valor) -> {
+			switch (campo) {
+			case "marca":
+				veiculoExistente.setMarca((String) valor);
+				break;
+			case "ano":
+				veiculoExistente.setAno((Integer) valor);
+				break;
+			case "descricao":
+				veiculoExistente.setDescricao((String) valor);
+				break;
+			case "vendido":
+				veiculoExistente.setVendido((Boolean) valor);
+				break;
+			default:
+				// Ignora os campos que não pertence ao veículo
+				break;
+			}
+		});
 
-	    // Atualiza apenas os campos fornecidos no corpo da requisição
-	    camposAtualizados.forEach((campo, valor) -> {
-	        switch (campo) {
-	            case "marca":
-	                veiculoExistente.setMarca((String) valor);
-	                break;
-	            case "ano":
-	                veiculoExistente.setAno((Integer) valor);
-	                break;
-	            case "descricao":
-	                veiculoExistente.setDescricao((String) valor);
-	                break;
-	            case "vendido":
-	                veiculoExistente.setVendido((Boolean) valor);
-	                break;
-	            default:
-	                // Ignorar campos desconhecidos
-	                break;
-	        }
-	    });
+		veiculoExistente.setUpdated(LocalDateTime.now());
+		
+		try {
+			validaMarca(veiculoExistente);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
 
-	    veiculoExistente.setUpdated(LocalDateTime.now());
+		Veiculo veiculoAtualizado = veiculoRepository.save(veiculoExistente);
 
-	    Veiculo veiculoAtualizado = veiculoRepository.save(veiculoExistente);
-
-	    return ResponseEntity.ok(veiculoAtualizado);
+		return ResponseEntity.ok(veiculoAtualizado);
 	}
 
-	
 	@GetMapping("/filtro")
 	public List<Veiculo> filtrarVeiculosPorMarcaEAno(@RequestParam(required = false) String marca,
-	                                                @RequestParam(required = false) Integer ano) {
-	    List<Veiculo> veiculos = veiculoRepository.findAll();
+			@RequestParam(required = false) Integer ano) {
+		List<Veiculo> veiculos = veiculoRepository.findAll();
 
-	    if (marca != null && ano != null) {
-	        return veiculos.stream()
-	                .filter(v -> v.getMarca().equalsIgnoreCase(marca) && v.getAno().equals(ano))
-	                .collect(Collectors.toList());
-	    } else if (marca != null) {
-	        return veiculos.stream()
-	                .filter(v -> v.getMarca().equalsIgnoreCase(marca))
-	                .collect(Collectors.toList());
-	    } else if (ano != null) {
-	        return veiculos.stream()
-	                .filter(v -> v.getAno().equals(ano))
-	                .collect(Collectors.toList());
-	    } else {
-	        return veiculos;
-	    }
+		if (marca != null && ano != null) {
+			return veiculos.stream().filter(v -> v.getMarca().equalsIgnoreCase(marca) && v.getAno().equals(ano))
+					.collect(Collectors.toList());
+		} else if (marca != null) {
+			return veiculos.stream().filter(v -> v.getMarca().equalsIgnoreCase(marca)).collect(Collectors.toList());
+		} else if (ano != null) {
+			return veiculos.stream().filter(v -> v.getAno().equals(ano)).collect(Collectors.toList());
+		} else {
+			return veiculos;
+		}
 	}
-	
+
 	@GetMapping("/nao-vendidos/quantidade")
 	public int contarNaoVendidos() {
-	    return veiculoRepository.countByVendidoFalse();
+		return veiculoRepository.countByVendidoFalse();
+	}
+
+	@GetMapping("/distribuicao-decada")
+	public Map<String, Integer> distribuicaoPorDecada() {
+		List<Veiculo> veiculos = veiculoRepository.findAll();
+
+		Map<String, Integer> distribuicaoDecada = new HashMap<>();
+
+		for (Veiculo veiculo : veiculos) {
+			int decada = veiculo.getAno() / 10 * 10;
+			String chave = "Década " + decada;
+			distribuicaoDecada.put(chave, distribuicaoDecada.getOrDefault(chave, 0) + 1);
+		}
+
+		return distribuicaoDecada;
+	}
+
+	@GetMapping("/distribuicao-fabricante")
+	public Map<String, Integer> distribuicaoPorFabricante() {
+		List<Veiculo> veiculos = veiculoRepository.findAll();
+
+		Map<String, Integer> distribuicaoFabricante = new HashMap<>();
+
+		for (Veiculo veiculo : veiculos) {
+			String fabricante = veiculo.getMarca();
+			distribuicaoFabricante.put(fabricante, distribuicaoFabricante.getOrDefault(fabricante, 0) + 1);
+		}
+
+		return distribuicaoFabricante;
+	}
+
+	@GetMapping("/registrados-ultima-semana")
+	public List<Veiculo> listarRegistradosUltimaSemana() {
+		LocalDateTime dataAtual = LocalDateTime.now();
+		LocalDateTime dataInicioSemana = dataAtual.minusWeeks(1);
+
+		return veiculoRepository.findByCreatedBetween(dataInicioSemana, dataAtual);
+	}
+
+	public void validaMarca(Veiculo veiculo) {
+		// Verificar se a marca fornecida está na lista de marcas válidas
+		List<String> marcasValidas = Arrays.asList("Ford", "Honda", "Chevrolet", "Volkswagen", "Toyota", "Fiat");
+																					
+		String marcaFornecida = veiculo.getMarca();
+
+		if (!marcasValidas.contains(marcaFornecida)) {
+			throw new IllegalArgumentException("Marca fornecida inválida");
+		}
 	}
 	
-
 }
