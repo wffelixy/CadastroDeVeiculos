@@ -1,87 +1,369 @@
-Cadastro de Veículos
-Esta é uma API JSON RESTful para gerenciar o cadastro de veículos. A API permite realizar operações como listar veículos, buscar um veículo por ID, cadastrar um novo veículo, atualizar informações de um veículo e remover um veículo do sistema.
+# Cadastro de Veículos
 
-Endpoints
-Listar veículos
-Retorna uma lista de todos os veículos cadastrados.
+Este projeto é uma API para o cadastro de veículos.
 
-Endpoint: GET /veiculos
+## Pré-requisitos
 
-Buscar veículo por ID
-Retorna as informações de um veículo específico com base no seu ID.
+- Java 17
+- MySQL 8
 
-Endpoint: GET /veiculos/{veiculoId}
+## Configuração do Banco de Dados
 
-Cadastrar um veículo
-Cadastra um novo veículo no sistema.
+1. Crie um banco de dados chamado `tinnova`.
+2. No arquivo `application.properties`, verifique e atualize as configurações do banco de dados conforme necessário:
 
-Endpoint: POST /veiculos
+## Executando o Projeto
 
-Body da requisição:
+1. Clone o repositório para a sua máquina.
+2. Navegue até o diretório do projeto.
+3. Execute o comando `mvn clean install` para compilar e empacotar o projeto.
+4. Execute o comando `java -jar target/cadastra-veiculos-0.0.1-SNAPSHOT.jar` para iniciar a aplicação.
 
-json
-Copy code
+## Endpoints
+
+- **GET /veiculos**: Retorna todos os veículos cadastrados.
+- **GET /veiculos/{veiculoId}**: Retorna um veículo específico com base no ID.
+- **POST /veiculos**: Cadastra um novo veículo.
+- **PUT /veiculos/{veiculoId}**: Atualiza um veículo existente.
+- **DELETE /veiculos/{veiculoId}**: Remove um veículo existente.
+- **PATCH /veiculos/{veiculoId}**: Atualiza parcialmente um veículo existente.
+- **GET /veiculos/filtro**: Filtra veículos por marca e/ou ano.
+- **GET /veiculos/nao-vendidos/quantidade**: Retorna a quantidade de veículos não vendidos.
+- **GET /veiculos/distribuicao-decada**: Retorna a distribuição de veículos por década.
+- **GET /veiculos/distribuicao-fabricante**: Retorna a distribuição de veículos por fabricante.
+- **GET /veiculos/registrados-ultima-semana**: Retorna os veículos registrados na última semana.
+
+
+GET /veiculos
+Retorna todos os veículos cadastrados.
+
+Método: GET
+URL: /veiculos
+Resposta de Sucesso: 200 OK
+Exemplo de Resposta:
+
+[
+  {
+    "id": 1,
+    "marca": "Ford",
+    "ano": 2020,
+    "descricao": "Fiesta Sedan",
+    "vendido": false,
+    "created": "2023-07-05T10:30:00",
+    "updated": "2023-07-05T10:30:00"
+  },
+  {
+    "id": 2,
+    "marca": "Chevrolet",
+    "ano": 2018,
+    "descricao": "Onix",
+    "vendido": true,
+    "created": "2023-07-05T09:45:00",
+    "updated": "2023-07-05T10:15:00"
+  },
+  ...
+]
+
+GET /veiculos/{veiculoId}
+Retorna um veículo específico com base no ID.
+
+Método: GET
+URL: /veiculos/{veiculoId}
+Parâmetros de URL:
+veiculoId (obrigatório): ID do veículo a ser buscado.
+Resposta de Sucesso: 200 OK
+Resposta de Falha: 404 Not Found
+Exemplo de Resposta (sucesso):
+
 {
-  "veiculo": "Nome do veículo",
-  "marca": "Marca do veículo",
-  "ano": 2022,
-  "descricao": "Descrição do veículo",
+  "id": 1,
+  "marca": "Ford",
+  "ano": 2020,
+  "descricao": "Fiesta Sedan",
+  "vendido": false,
+  "created": "2023-07-05T10:30:00",
+  "updated": "2023-07-05T10:30:00"
+}
+
+
+POST /veiculos
+Cadastra um novo veículo.
+
+Método: POST
+URL: /veiculos
+Corpo da Requisição: JSON com os dados do veículo a ser cadastrado.
+Resposta de Sucesso: 201 Created
+Resposta de Falha: 401 Unauthorized
+Exemplo de Corpo da Requisição:
+
+{
+  "marca": "Volkswagen",
+  "ano": 2019,
+  "descricao": "Golf",
   "vendido": false
 }
-Atualizar um veículo
-Atualiza as informações de um veículo existente com base no seu ID.
 
-Endpoint: PUT /veiculos/{veiculoId}
-
-Body da requisição:
-
-json
-Copy code
+Exemplo de Resposta (sucesso):
 {
-  "veiculo": "Novo nome do veículo",
-  "marca": "Nova marca do veículo",
-  "ano": 2023,
-  "descricao": "Nova descrição do veículo",
+  "id": 3,
+  "marca": "Volkswagen",
+  "ano": 2019,
+  "descricao": "Golf",
+  "vendido": false,
+  "created": "2023-07-05T11:00:00",
+  "updated": "2023-07-05T11:00:00"
+}
+
+PUT /veiculos/{veiculoId}
+Atualiza um veículo existente.
+
+Método: PUT
+URL: /veiculos/{veiculoId}
+Parâmetros de URL:
+veiculoId (obrigatório): ID do veículo a ser atualizado.
+Corpo da Requisição: JSON com os dados atualizados do veículo.
+Resposta de Sucesso: 200 OK
+Resposta de Falha: 404 Not Found ou 401 Unauthorized
+Exemplo de Corpo da Requisição:
+
+{
+  "marca": "Chevrolet",
+  "ano": 2018,
+  "descricao":"Onix Sedan",
   "vendido": true
 }
-Remover um veículo
-Remove um veículo do sistema com base no seu ID.
 
-Endpoint: DELETE /veiculos/{veiculoId}
-
-Filtrar veículos por marca e ano
-Filtra os veículos com base na marca e/ou ano informados. Retorna uma lista de veículos que correspondem aos critérios de filtro.
-
-Endpoint: GET /veiculos/filtro?marca={marca}&ano={ano}
-
-Se fornecida apenas a marca, retorna os veículos que possuem a marca especificada.
-Se fornecido apenas o ano, retorna os veículos que possuem o ano especificado.
-Se fornecidos tanto a marca quanto o ano, retorna os veículos que possuem a marca e o ano especificados.
-Como testar a API
-Você pode utilizar uma ferramenta como o Postman ou qualquer cliente HTTP para enviar requisições à API e testar os diferentes endpoints e funcionalidades.
-
-Certifique-se de que o servidor esteja em execução e acesse os endpoints conforme especificado acima, fornecendo os parâmetros necessários e verificando as respostas retornadas pela API.
-
-Isso é apenas um exemplo de README e você pode adaptá-lo para incluir informações adicionais, como pré-requisitos de ambiente, configuração do banco de dados, autenticação, entre outros.
+Exemplo de Resposta (sucesso):
+{
+"id": 2,
+"marca": "Chevrolet",
+"ano": 2018,
+"descricao": "Onix Sedan",
+"vendido": true,
+"created": "2023-07-05T09:45:00",
+"updated": "2023-07-05T11:30:00"
+}
 
 
-Endpoint: GET /veiculos/nao-vendidos/quantidade
+### DELETE /veiculos/{veiculoId}
 
-Ao acessar a URL /veiculos/nao-vendidos/quantidade no navegador ou no Postman, você receberá a quantidade de veículos que não estão vendidos como resposta.
+Remove um veículo existente.
 
-Obs:
+- Método: DELETE
+- URL: /veiculos/{veiculoId}
+- Parâmetros de URL:
+- veiculoId (obrigatório): ID do veículo a ser removido.
+- Resposta de Sucesso: 204 No Content
+- Resposta de Falha: 404 Not Found
 
-Necessário criar o banco tinnova e a tabela a seguir:
+### PATCH /veiculos/{veiculoId}
 
-create table veiculo(
-  id BIGINT NOT NULL AUTO_INCREMENT,
-  veiculo VARCHAR(255) NOT NULL,
-  marca VARCHAR(255) NOT NULL,
-  ano INT NOT NULL,
-  descricao VARCHAR(4000),
-  vendido BOOLEAN NOT NULL,
-  created DATETIME NOT NULL,
-  updated DATETIME NOT NULL,
-  
-  PRIMARY KEY(id)  
-);
+Atualiza parcialmente um veículo existente.
+
+- Método: PATCH
+- URL: /veiculos/{veiculoId}
+- Parâmetros de URL:
+- veiculoId (obrigatório): ID do veículo a ser atualizado.
+- Corpo da Requisição: JSON com os campos a serem atualizados.
+- Resposta de Sucesso: 200 OK
+- Resposta de Falha: 404 Not Found ou 401 Unauthorized
+- Exemplo de Corpo da Requisição:
+
+{
+"descricao": "Novo Onix Sedan",
+"vendido": false
+}
+
+Exemplo de Resposta (sucesso):
+
+{
+"id": 2,
+"marca": "Chevrolet",
+"ano": 2018,
+"descricao": "Novo Onix Sedan",
+"vendido": false,
+"created": "2023-07-05T09:45:00",
+"updated": "2023-07-05T11:45:00"
+}
+
+
+### GET /veiculos/filtro
+
+Filtra os veículos por marca e/ou ano.
+
+- Método: GET
+- URL: /veiculos/filtro
+- Parâmetros de Query:
+- marca (opcional): Marca do veículo.
+- ano (opcional): Ano do veículo.
+- Resposta de Sucesso: 200 OK
+- Exemplo de URL de Requisição (filtrando por marca e ano):
+
+/veiculos/filtro?marca=Ford&ano=2020
+
+Exemplo de Resposta:
+
+
+Onix Sedan",
+"vendido": true
+}
+
+diff
+Copy code
+- Exemplo de Resposta (sucesso):
+{
+"id": 2,
+"marca": "Chevrolet",
+"ano": 2018,
+"descricao": "Onix Sedan",
+"vendido": true,
+"created": "2023-07-05T09:45:00",
+"updated": "2023-07-05T11:30:00"
+}
+
+markdown
+Copy code
+
+### DELETE /veiculos/{veiculoId}
+
+Remove um veículo existente.
+
+- Método: DELETE
+- URL: /veiculos/{veiculoId}
+- Parâmetros de URL:
+- veiculoId (obrigatório): ID do veículo a ser removido.
+- Resposta de Sucesso: 204 No Content
+- Resposta de Falha: 404 Not Found
+
+### PATCH /veiculos/{veiculoId}
+
+Atualiza parcialmente um veículo existente.
+
+- Método: PATCH
+- URL: /veiculos/{veiculoId}
+- Parâmetros de URL:
+- veiculoId (obrigatório): ID do veículo a ser atualizado.
+- Corpo da Requisição: JSON com os campos a serem atualizados.
+- Resposta de Sucesso: 200 OK
+- Resposta de Falha: 404 Not Found ou 401 Unauthorized
+- Exemplo de Corpo da Requisição:
+{
+"descricao": "Novo Onix Sedan",
+"vendido": false
+}
+
+ Exemplo de Resposta (sucesso):
+{
+"id": 2,
+"marca": "Chevrolet",
+"ano": 2018,
+"descricao": "Novo Onix Sedan",
+"vendido": false,
+"created": "2023-07-05T09:45:00",
+"updated": "2023-07-05T11:45:00"
+}
+
+### GET /veiculos/filtro
+
+Filtra os veículos por marca e/ou ano.
+
+- Método: GET
+- URL: /veiculos/filtro
+- Parâmetros de Query:
+- marca (opcional): Marca do veículo.
+- ano (opcional): Ano do veículo.
+- Resposta de Sucesso: 200 OK
+- Exemplo de URL de Requisição (filtrando por marca e ano):
+/veiculos/filtro?marca=Ford&ano=2020
+
+
+
+
+
+
+-Exemplo de Resposta:
+[
+{
+"id": 1,
+"marca": "Ford",
+"ano": 2020,
+"descricao": "Fiesta Sedan",
+"vendido": false,
+"created": "2023-07-05T10:30:00",
+"updated": "2023-07-05T10:30:00"
+},
+...
+]
+
+
+### GET /veiculos/nao-vendidos/quantidade
+
+Retorna a quantidade de veículos não vendidos.
+
+- Método: GET
+- URL: /veiculos/nao-vendidos/quantidade
+- Resposta de Sucesso: 200 OK
+- Exemplo de Resposta:
+
+volta um inteiro = 3
+
+
+### GET /veiculos/distribuicao-decada
+
+Retorna a distribuição de veículos por década.
+
+- Método: GET
+- URL: /veiculos/distribuuicao-decada
+
+Resposta de Sucesso: 200 OK
+Exemplo de Resposta:
+
+{
+  "Década 2000": 5,
+  "Década 2010": 10,
+  "Década 2020": 8
+}
+
+GET /veiculos/distribuicao-fabricante
+Retorna a distribuição de veículos por fabricante.
+
+Método: GET
+URL: /veiculos/distribuicao-fabricante
+Resposta de Sucesso: 200 OK
+Exemplo de Resposta:
+
+{
+  "Ford": 5,
+  "Chevrolet": 8,
+  "Volkswagen": 7,
+  "Toyota": 3
+}
+
+GET /veiculos/registrados-ultima-semana
+Retorna os veículos registrados na última semana.
+
+Método: GET
+URL: /veiculos/registrados-ultima-semana
+Resposta de Sucesso: 200 OK
+Exemplo de Resposta:
+
+[
+  {
+    "id": 1,
+    "marca": "Ford",
+    "ano": 2020,
+    "descricao": "Fiesta Sedan",
+    "vendido": false,
+    "created": "2023-06-28T09:30:00",
+    "updated": "2023-06-28T09:30:00"
+  },
+  {
+    "id": 4,
+    "marca": "Volkswagen",
+    "ano": 2022,
+    "descricao": "Golf GTI",
+    "vendido": false,
+    "created": "2023-06-30T14:15:00",
+    "updated": "2023-06-30T14:15:00"
+
+
